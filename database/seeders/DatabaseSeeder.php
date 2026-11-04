@@ -9,7 +9,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call(RolesAndPermissionsSeeder::class);
+        $this->call(BaseDataSeeder::class);
 
         User::query()->firstOrCreate(
             ['email' => env('PLATFORM_ADMIN_EMAIL', 'admin@messmate.test')],

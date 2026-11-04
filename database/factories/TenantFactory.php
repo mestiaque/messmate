@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -31,6 +33,25 @@ class TenantFactory extends Factory
     {
         return $this->afterCreating(function (Tenant $tenant) {
             $tenant->users()->syncWithoutDetaching([$tenant->owner_id => ['status' => 'active', 'joined_at' => now()]]);
+
+            // Unlimited by default so tests not about billing are not constrained by plan limits.
+            Subscription::query()->firstOrCreate(['tenant_id' => $tenant->id], [
+                'plan_id' => SubscriptionPlan::query()->where('slug', 'enterprise')->value('id'),
+                'status' => 'active', 'billing_cycle' => 'monthly', 'starts_at' => now(),
+            ]);
+        });
+    }
+
+    /**
+     * Put the tenant on a specific plan and status (for billing tests).
+     */
+    public function onPlan(string $slug, string $status = 'active', array $attributes = []): static
+    {
+        return $this->afterCreating(function (Tenant $tenant) use ($slug, $status, $attributes) {
+            Subscription::query()->where('tenant_id', $tenant->id)->update($attributes + [
+                'plan_id' => SubscriptionPlan::query()->where('slug', $slug)->value('id'),
+                'status' => $status,
+            ]);
         });
     }
 

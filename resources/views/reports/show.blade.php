@@ -18,8 +18,10 @@
                     @foreach ($members as $m)<option value="{{ $m->id }}" @selected($member?->id === $m->id)>{{ $m->member_code }} · {{ $m->full_name }}</option>@endforeach
                 </select>
             @endif
-            @if ($report)
+            @if ($report && $canExport)
                 <a href="{{ request()->fullUrlWithQuery(['format' => 'csv']) }}" class="btn btn-sm btn-outline-success"><i class="bi bi-filetype-csv"></i> CSV (Excel)</a>
+            @endif
+            @if ($report)
                 <button type="button" class="btn btn-sm btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer"></i> Print / PDF</button>
             @endif
         </form>

@@ -7,6 +7,9 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 @endif
+@if (session('error'))
+    <div class="alert alert-warning" role="alert">{{ session('error') }}</div>
+@endif
 @if ($errors->any())
     <div class="alert alert-danger" role="alert">
         <ul class="mb-0 ps-3">

@@ -7,18 +7,18 @@ use App\Models\Mess;
 use App\Models\MessMember;
 use App\Models\User;
 use App\Services\Meals\MealTypeService;
-use Database\Seeders\RolesAndPermissionsSeeder;
+use Database\Seeders\BaseDataSeeder;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
     /**
-     * Seed the role catalogue once for the whole run; RefreshDatabase only migrates
+     * Seed reference data (roles, plans) once for the whole run; RefreshDatabase only migrates
      * on the first test, so per-class seeding would be skipped elsewhere.
      */
     protected $seed = true;
 
-    protected $seeder = RolesAndPermissionsSeeder::class;
+    protected $seeder = BaseDataSeeder::class;
 
     /**
      * Create an active member of the mess with the given system role.

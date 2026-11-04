@@ -10,6 +10,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Services\Access\MessAccessService;
 use App\Services\Audit\AuditLogger;
+use App\Services\Billing\SubscriptionService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -21,6 +22,7 @@ class MembershipService
         private readonly TenantService $tenants,
         private readonly MessAccessService $access,
         private readonly AuditLogger $audit,
+        private readonly SubscriptionService $subscriptions,
     ) {}
 
     /**
@@ -37,6 +39,8 @@ class MembershipService
             if ($user->activeMembershipIn($mess)) {
                 throw ValidationException::withMessages(['user' => 'This user is already an active member of this mess.']);
             }
+
+            $this->assertPlanAllows($mess, $user);
 
             $member = new MessMember([
                 'full_name' => $attributes['full_name'] ?? $user->name,
@@ -96,6 +100,7 @@ class MembershipService
     {
         return DB::transaction(function () use ($mess, $attributes, $roleIds, $actor) {
             Mess::query()->whereKey($mess->id)->lockForUpdate()->first();
+            $this->assertPlanAllows($mess);
 
             $member = new MessMember($attributes);
             $member->tenant_id = $mess->tenant_id;
@@ -176,6 +181,11 @@ class MembershipService
 
         if ($user->activeMembershipIn($member->mess)) {
             throw ValidationException::withMessages(['login' => 'That user already has an active membership in this mess.']);
+        }
+
+        $tenant = $member->mess->tenant;
+        if (! $tenant->users()->whereKey($user->id)->exists()) {
+            $this->subscriptions->assertCanAdd($tenant, 'users');
         }
 
         $member->user_id = $user->id;
@@ -260,6 +270,18 @@ class MembershipService
 
         $invitation->update(['status' => 'revoked']);
         $this->audit->log('invitation.revoked', $invitation);
+    }
+
+    /**
+     * Plan limits: members per mess, and organization users when $user is new to the tenant.
+     */
+    private function assertPlanAllows(Mess $mess, ?User $user = null): void
+    {
+        $this->subscriptions->assertCanAdd($mess->tenant, 'members', $mess);
+
+        if ($user && ! $mess->tenant->users()->whereKey($user->id)->exists() && $mess->tenant->owner_id !== $user->id) {
+            $this->subscriptions->assertCanAdd($mess->tenant, 'users');
+        }
     }
 
     private function nextMemberCode(Mess $mess): string

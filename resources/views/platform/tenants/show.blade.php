@@ -27,6 +27,23 @@
             </div></div>
         </div>
         <div class="col-lg-8">
+            @php($sub = app(\App\Services\Billing\SubscriptionService::class)->current($tenant))
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white fw-semibold">Subscription: {{ $sub->plan->name }} <span class="badge text-bg-{{ $sub->status->badge() }}">{{ $sub->status->value }}</span></div>
+                <div class="card-body">
+                    <p class="small mb-2">
+                        @if ($sub->trial_ends_at) Trial ends {{ $sub->trial_ends_at->format('d M Y') }} · @endif
+                        Paid until {{ $sub->current_period_end?->format('d M Y') ?? '—' }} · access {{ app(\App\Services\Billing\SubscriptionService::class)->access($tenant) }}
+                    </p>
+                    <form method="POST" action="{{ route('platform.tenants.subscription', $tenant->id) }}" class="row g-2 align-items-end">
+                        @csrf @method('PUT')
+                        <div class="col-md-5"><label class="form-label small" for="plan_id">Set plan</label>
+                            <select id="plan_id" name="plan_id" class="form-select form-select-sm">@foreach (\App\Models\SubscriptionPlan::orderBy('sort_order')->get() as $p)<option value="{{ $p->id }}" @selected($p->id === $sub->plan_id)>{{ $p->name }}</option>@endforeach</select></div>
+                        <div class="col-md-4"><label class="form-label small" for="until">Active until (blank = open-ended)</label><input id="until" type="date" name="until" class="form-control form-control-sm"></div>
+                        <div class="col-md-3"><button class="btn btn-sm btn-outline-primary w-100">Apply</button></div>
+                    </form>
+                </div>
+            </div>
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white fw-semibold">Messes ({{ $tenant->messes_count }})</div>
                 <ul class="list-group list-group-flush">

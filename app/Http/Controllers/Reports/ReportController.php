@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Reports;
 use App\Http\Controllers\Controller;
 use App\Models\Mess;
 use App\Models\Tenant;
+use App\Services\Billing\SubscriptionService;
 use App\Services\Periods\AccountingPeriodService;
 use App\Services\Reports\ReportService;
 use Illuminate\Http\Request;
@@ -43,6 +44,8 @@ class ReportController extends Controller
         $report = $ready ? $reports->build($type, $mess, $period, $date, $member) : null;
 
         if ($report && $request->query('format') === 'csv') {
+            abort_unless(app(SubscriptionService::class)->hasFeature($tenant, 'reports_export'), 403, 'CSV export is not included in your plan.');
+
             return $this->csv($report, Str::slug($mess->name.' '.$report['title'].' '.$report['subtitle']));
         }
 
@@ -57,6 +60,7 @@ class ReportController extends Controller
             'member' => $member,
             'periods' => $mess->periods()->orderByDesc('start_date')->get(['id', 'name']),
             'members' => $needs === 'member' ? $mess->members()->orderBy('member_code')->get(['id', 'member_code', 'full_name']) : collect(),
+            'canExport' => app(SubscriptionService::class)->hasFeature($tenant, 'reports_export'),
         ]);
     }
 

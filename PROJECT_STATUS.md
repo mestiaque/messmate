@@ -11,7 +11,7 @@ Last updated: 2026-11-03
 | 3 | Bazar, expenses, deposits, ledger | Complete on the private test instance: 98/98 tests, browser-tested. Re-run on the real DB pending |
 | 4 | Calculation engine, settlement | Complete on the private test instance: 129/129 tests, browser-tested. Re-run on the real DB pending |
 | 5 | Dashboards, reports, member portal | Complete on the private test instance: 140/140 tests, browser-tested. Excel/PDF via CSV + print (see below) |
-| 6 | Subscriptions, platform billing | Not started |
+| 6 | Subscriptions, platform billing | Complete on the private test instance: 163/163 tests, browser-tested. Real gateway not integrated (sandbox + manual) |
 | 7 | Security/performance audit, release | Not started |
 
 ## Phase 1 — delivered
@@ -116,6 +116,28 @@ Not implemented: a separate `refunds` table — refunds are `settlement_payments
 print-to-PDF. Adding e.g. `maatwebsite/excel` + `barryvdh/laravel-dompdf` later only needs a new writer for the
 existing report structure. Laravel Boost (required by CLAUDE.md) is also not installed yet.
 
+## Phase 6 — delivered
+
+- Plans (Free/Basic/Pro/Enterprise seeded, editable by platform admin): monthly/yearly price, limits on messes,
+  members per mess and users (blank = unlimited), features (`reports_export`, `self_service_meals`), trial days.
+- One subscription per tenant with full event history. New organizations start a trial of the configured plan;
+  tenants that predate billing get one on first access.
+- Access policy computed from dates: trial/active/past-due-within-grace/cancelled-until-end = full; otherwise
+  read-only (GET and exports work, data never deleted, billing and support stay writable). Banner explains state.
+- Limits enforced on the server in MessService / MembershipService (create mess, add member, add/link/accept user);
+  downgrades refused while usage exceeds the target plan.
+- Billing: checkout creates an invoice (INV-YYYY-NNNNN per tenant) and a pending payment priced from the plan;
+  provider interface with Manual transfer (platform confirms) and a Sandbox hosted-checkout with HMAC-signed,
+  timestamped callbacks; callbacks are idempotent, amount/currency are checked, failures never activate a plan;
+  paid time is never lost on renewal, cycle change or upgrade; payment e-mail to the owner.
+- `subscriptions:sweep` scheduled hourly; cancellation keeps access to period end.
+- Platform admin: plans, payments (confirm/reject manual), recent invoices, per-tenant plan override,
+  settings (grace days, trial plan, payment instructions), support tickets, platform announcements.
+- Tenant owner: plan & billing page (usage bars, plans, invoices, history), printable invoice, support tickets.
+
+Not done: a real payment gateway (needs merchant credentials and a package/SDK); proration (remaining time is
+carried over instead).
+
 ## Phase 1 acceptance criteria
 
 | Criterion | Covered by |
@@ -181,6 +203,17 @@ Verified 2026-11-03 on a private MySQL 8.4.11 instance: `migrate:fresh --seed` O
   member's ledger. No unexpected console errors.
 - Fixed during verification: the meal chart dropped to zero for days not yet reached; the portal ran the
   settlement calculation twice.
+
+## Phase 6 verification (2026-11-04, private MySQL 8.4.11)
+
+- `php artisan test` 163/163 (800 assertions): limits, trial expiry → read-only with data intact, grace → expiry
+  via sweep, cancellation, features, duplicate/bad-signature/expired/unknown callbacks, declined and
+  short-amount payments, renewal, carry-over on cycle/plan change, downgrade refusal, manual confirm,
+  per-tenant invoice numbers, owner-only and tenant-scoped billing/support, platform-admin-only pages.
+- Headless Chrome: trial banner, Pro yearly via sandbox → active, invoice, manual transfer → platform confirm,
+  support ticket round trip, platform announcement banner. No console errors.
+- Fixed during verification: confirming a monthly payment after a paid year reset the end date to one month
+  from now (11 paid months lost); provider labels truncated; "Renew" shown during a trial.
 
 ## Known issues
 

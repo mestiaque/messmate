@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
+use App\Services\Billing\SubscriptionService;
 use App\Services\Finance\FinanceSetupService;
 use App\Services\Meals\MealTypeService;
 use Illuminate\Support\Facades\DB;
@@ -19,12 +20,16 @@ class MessService
         private readonly MembershipService $memberships,
         private readonly MealTypeService $mealTypes,
         private readonly FinanceSetupService $finance,
+        private readonly SubscriptionService $subscriptions,
         private readonly AuditLogger $audit,
     ) {}
 
     public function create(Tenant $tenant, User $creator, array $data, bool $joinAsAdmin = true): Mess
     {
         return DB::transaction(function () use ($tenant, $creator, $data, $joinAsAdmin) {
+            Tenant::query()->whereKey($tenant->id)->lockForUpdate()->first();
+            $this->subscriptions->assertCanAdd($tenant, 'messes');
+
             $mess = new Mess($data);
             $mess->tenant_id = $tenant->id;
             $mess->slug = $this->uniqueSlug($tenant, $data['name']);

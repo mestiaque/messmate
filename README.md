@@ -45,6 +45,18 @@ After pulling a new phase on an existing database: `php artisan migrate` then
 | `manager@messmate.test` | Manager in North Hall, plain member in South Hall (local only) |
 | `member@messmate.test` | Member in North Hall (local only) |
 
+## Scheduler and billing
+
+Run the Laravel scheduler (cron: `* * * * * php artisan schedule:run`). It runs `subscriptions:sweep` hourly,
+which moves ended trials/periods to past-due or expired and purges old idempotency keys. Access checks are
+date-based, so enforcement is correct even if the sweep is late.
+
+Payment providers are set with `BILLING_PROVIDERS` (`manual`, `sandbox`). Manual payments are confirmed by a
+platform admin under **Platform → Payments**. The sandbox gateway simulates a hosted checkout with signed
+callbacks to `POST /billing/callback/sandbox`; it is for testing only. A real gateway (bKash, SSLCommerz…)
+is added by implementing `App\Services\Billing\Providers\PaymentProviderInterface` and registering it in
+`PaymentProviderManager`.
+
 ## Architecture overview
 
 - URLs carry the context: `/t/{tenant}/m/{mess}/...`. `ResolveTenant` and `ResolveMess` middleware

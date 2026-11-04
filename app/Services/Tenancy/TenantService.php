@@ -6,12 +6,16 @@ use App\Enums\TenantStatus;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
+use App\Services\Billing\SubscriptionService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class TenantService
 {
-    public function __construct(private readonly AuditLogger $audit) {}
+    public function __construct(
+        private readonly AuditLogger $audit,
+        private readonly SubscriptionService $subscriptions,
+    ) {}
 
     public function create(User $owner, array $data): Tenant
     {
@@ -23,6 +27,7 @@ class TenantService
             $tenant->save();
 
             $this->attachUser($tenant, $owner);
+            $this->subscriptions->start($tenant, $owner);
             $this->audit->log('tenant.created', $tenant, new: $tenant->only(['name', 'slug']), tenantId: $tenant->id);
 
             return $tenant;

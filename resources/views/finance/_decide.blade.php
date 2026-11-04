@@ -1,6 +1,6 @@
-{{-- Action button posting to a decide route; actions other than approve prompt for a reason. --}}
+{{-- Action button posting to a decide route; reject/void/reverse (or an explicit $prompt) ask for a reason. --}}
 <form method="POST" action="{{ $action }}" class="d-inline"
-      @if ($value !== 'approve') onsubmit="const r = prompt('{{ $prompt ?? 'Reason?' }}'); if (! r) return false; this.reason.value = r;" @endif>
+      @if (isset($prompt) || in_array($value, ['reject', 'void', 'reverse'], true)) onsubmit="const r = prompt('{{ $prompt ?? 'Reason?' }}'); if (! r) return false; this.reason.value = r;" @endif>
     @csrf
     <input type="hidden" name="action" value="{{ $value }}">
     <input type="hidden" name="reason">

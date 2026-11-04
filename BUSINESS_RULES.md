@@ -103,4 +103,15 @@
 - Members may open their own ledger report; all other finance reports need `finance.view`, meal reports `meals.view`.
 - CSV cells that begin with `= + - @` (non-numeric) are prefixed with `'`.
 
+## Subscriptions (Phase 6)
+
+- Full access while: trial not ended; active and period end + grace not passed; past-due within grace;
+  cancelled before period end. Otherwise read-only. Data is never deleted for billing reasons.
+- Read-only blocks every non-GET request in an organization except billing and support.
+- Limits (NULL = unlimited) are checked before creating a mess, adding a non-left member, or bringing a new
+  user into the organization. A plan change is refused if current usage exceeds it.
+- Prices always come from the plan. A payment is applied once; later callbacks for it are ignored.
+  A callback must carry a valid signature, be under 10 minutes old, and match the payment's amount and currency.
+- When paid time remains, a new period is added after it (no proration); the plan itself changes immediately.
+
 Financial and calculation rules: see `masterprompt.md` Part 5; they are recorded here as each phase implements them.

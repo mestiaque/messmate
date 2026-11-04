@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added — Phase 6 (subscriptions and platform)
+- Subscription plans, trials, limits and features; read-only mode for lapsed subscriptions.
+- Checkout with invoices, manual and sandbox payment providers, signed idempotent callbacks, renewals and carry-over.
+- Hourly subscription sweep; platform admin for plans, payments, settings, support tickets and announcements.
+
 ### Added — Phase 5 (dashboards, reports, member portal)
 - Admin dashboard with cached period figures and trend charts.
 - Member portal, self-service meal entry with approval option, announcements.

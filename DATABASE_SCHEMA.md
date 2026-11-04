@@ -43,6 +43,14 @@ Implemented tables (Phase 1). Monetary/meal tables are added in later phases per
 | settlement_items | signed `amount` (+ = in the member's favour) |
 | settlement_payments | `mess_id` (addition); CHECK amount > 0 |
 
+| subscription_plans | unique slug; CHECK prices ≥ 0; NULL limits = unlimited |
+| subscriptions | unique tenant_id (one live row; history in `subscription_events`) |
+| invoices | unique (tenant_id, invoice_number); `plan_id`, `billing_cycle`, `description` (additions); CHECK total = subtotal − discount + tax |
+| subscription_payments | unique `provider_reference`; `invoice_id`, `created_by`, `confirmed_by` (additions) |
+| subscription_events | (addition) append-only history |
+| support_tickets / support_ticket_messages | (addition) tenant ↔ platform support |
+| platform_announcements | (addition) shown to every organization |
+
 `mess_members.user_id` FK is RESTRICT, not SET NULL: MySQL does not allow SET NULL on a base column of the stored
 generated column `active_user_key`.
 

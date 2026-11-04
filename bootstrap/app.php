@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsurePlatformAdmin;
+use App\Http\Middleware\EnsureSubscriptionWritable;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\ResolveMess;
 use App\Http\Middleware\ResolveTenant;
@@ -21,9 +22,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant' => ResolveTenant::class,
             'mess' => ResolveMess::class,
             'platform.admin' => EnsurePlatformAdmin::class,
+            'subscription.writable' => EnsureSubscriptionWritable::class,
         ]);
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn () => route('home'));
+        // Payment providers post here without a session.
+        $middleware->validateCsrfTokens(except: ['billing/callback/*']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

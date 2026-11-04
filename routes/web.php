@@ -2,6 +2,10 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Billing\BillingController;
+use App\Http\Controllers\Billing\PaymentCallbackController;
+use App\Http\Controllers\Billing\SandboxGatewayController;
+use App\Http\Controllers\Billing\SupportController;
 use App\Http\Controllers\Finance\BazarController;
 use App\Http\Controllers\Finance\DepositController;
 use App\Http\Controllers\Finance\ExpenseController;
@@ -19,7 +23,9 @@ use App\Http\Controllers\Meals\MealTypeController;
 use App\Http\Controllers\Meals\PeriodController;
 use App\Http\Controllers\Mess\MemberController;
 use App\Http\Controllers\Mess\MessController;
+use App\Http\Controllers\Platform\PlatformBillingController;
 use App\Http\Controllers\Platform\PlatformController;
+use App\Http\Controllers\Platform\PlatformSupportController;
 use App\Http\Controllers\Portal\AnnouncementController;
 use App\Http\Controllers\Portal\PortalController;
 use App\Http\Controllers\ProfileController;
@@ -37,7 +43,13 @@ Route::middleware('guest')->group(function () {
     Route::post('register', [RegisteredUserController::class, 'store'])->middleware('throttle:10,1');
 });
 
+// Server-to-server payment callbacks: no session, no CSRF; trust comes from the provider signature.
+Route::post('billing/callback/{provider}', PaymentCallbackController::class)->middleware('throttle:60,1')->name('billing.callback');
+
 Route::middleware('auth')->group(function () {
+    Route::get('billing/sandbox/{reference}', [SandboxGatewayController::class, 'show'])->name('billing.sandbox.show');
+    Route::post('billing/sandbox/{reference}', [SandboxGatewayController::class, 'pay'])->name('billing.sandbox.pay');
+
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     Route::get('/', HomeController::class)->name('home');
 
@@ -50,10 +62,18 @@ Route::middleware('auth')->group(function () {
     Route::get('organizations/create', [TenantController::class, 'create'])->name('tenants.create');
     Route::post('organizations', [TenantController::class, 'store'])->name('tenants.store');
 
-    Route::prefix('t/{tenant}')->middleware('tenant')->scopeBindings()->group(function () {
+    Route::prefix('t/{tenant}')->middleware(['tenant', 'subscription.writable'])->scopeBindings()->group(function () {
         Route::get('/', [TenantController::class, 'dashboard'])->name('tenant.dashboard');
         Route::get('settings', [TenantController::class, 'edit'])->name('tenant.settings.edit');
         Route::put('settings', [TenantController::class, 'update'])->name('tenant.settings.update');
+        Route::get('billing', [BillingController::class, 'index'])->name('billing.index');
+        Route::post('billing/checkout', [BillingController::class, 'checkout'])->middleware('throttle:10,1')->name('billing.checkout');
+        Route::post('billing/cancel', [BillingController::class, 'cancel'])->name('billing.cancel');
+        Route::get('billing/invoices/{invoice}', [BillingController::class, 'invoice'])->name('billing.invoices.show');
+        Route::get('support', [SupportController::class, 'index'])->name('support.index');
+        Route::post('support', [SupportController::class, 'store'])->name('support.store');
+        Route::get('support/{supportTicket}', [SupportController::class, 'show'])->name('support.show');
+        Route::post('support/{supportTicket}/reply', [SupportController::class, 'reply'])->name('support.reply');
         Route::get('messes/create', [MessController::class, 'create'])->name('messes.create');
         Route::post('messes', [MessController::class, 'store'])->name('messes.store');
 
@@ -152,5 +172,19 @@ Route::middleware('auth')->group(function () {
         Route::get('tenants/{tenant:id}', [PlatformController::class, 'showTenant'])->name('tenants.show');
         Route::post('tenants/{tenant:id}/suspend', [PlatformController::class, 'suspendTenant'])->name('tenants.suspend');
         Route::post('tenants/{tenant:id}/activate', [PlatformController::class, 'activateTenant'])->name('tenants.activate');
+        Route::put('tenants/{tenant:id}/subscription', [PlatformBillingController::class, 'setSubscription'])->name('tenants.subscription');
+        Route::get('plans', [PlatformBillingController::class, 'plans'])->name('plans.index');
+        Route::post('plans', [PlatformBillingController::class, 'storePlan'])->name('plans.store');
+        Route::put('plans/{plan}', [PlatformBillingController::class, 'updatePlan'])->name('plans.update');
+        Route::get('payments', [PlatformBillingController::class, 'payments'])->name('payments.index');
+        Route::post('payments/{payment}/decide', [PlatformBillingController::class, 'decidePayment'])->name('payments.decide');
+        Route::get('settings', [PlatformBillingController::class, 'settings'])->name('settings');
+        Route::put('settings', [PlatformBillingController::class, 'updateSettings'])->name('settings.update');
+        Route::get('tickets', [PlatformSupportController::class, 'tickets'])->name('tickets.index');
+        Route::get('tickets/{ticket}', [PlatformSupportController::class, 'show'])->name('tickets.show');
+        Route::post('tickets/{ticket}/reply', [PlatformSupportController::class, 'reply'])->name('tickets.reply');
+        Route::get('announcements', [PlatformSupportController::class, 'announcements'])->name('announcements.index');
+        Route::post('announcements', [PlatformSupportController::class, 'storeAnnouncement'])->name('announcements.store');
+        Route::delete('announcements/{announcement}', [PlatformSupportController::class, 'withdrawAnnouncement'])->name('announcements.withdraw');
     });
 });

@@ -64,6 +64,11 @@
                 <ul class="nav flex-column mb-3">
                     <li><a class="nav-link @if(request()->routeIs('platform.dashboard')) active @endif" href="{{ route('platform.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
                     <li><a class="nav-link @if(request()->routeIs('platform.tenants.*')) active @endif" href="{{ route('platform.tenants.index') }}"><i class="bi bi-buildings me-2"></i>Organizations</a></li>
+                    <li><a class="nav-link @if(request()->routeIs('platform.plans.*')) active @endif" href="{{ route('platform.plans.index') }}"><i class="bi bi-boxes me-2"></i>Plans</a></li>
+                    <li><a class="nav-link @if(request()->routeIs('platform.payments.*')) active @endif" href="{{ route('platform.payments.index') }}"><i class="bi bi-credit-card me-2"></i>Payments & invoices</a></li>
+                    <li><a class="nav-link @if(request()->routeIs('platform.tickets.*')) active @endif" href="{{ route('platform.tickets.index') }}"><i class="bi bi-life-preserver me-2"></i>Support tickets</a></li>
+                    <li><a class="nav-link @if(request()->routeIs('platform.announcements.*')) active @endif" href="{{ route('platform.announcements.index') }}"><i class="bi bi-megaphone me-2"></i>Announcements</a></li>
+                    <li><a class="nav-link @if(request()->routeIs('platform.settings')) active @endif" href="{{ route('platform.settings') }}"><i class="bi bi-gear me-2"></i>Settings</a></li>
                 </ul>
             @endif
             @if ($tenant)
@@ -72,6 +77,8 @@
                     <li><a class="nav-link @if(request()->routeIs('tenant.dashboard')) active @endif" href="{{ route('tenant.dashboard') }}"><i class="bi bi-grid me-2"></i>Overview</a></li>
                     @can('update', $tenant)
                         <li><a class="nav-link @if(request()->routeIs('tenant.settings.*')) active @endif" href="{{ route('tenant.settings.edit') }}"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                        <li><a class="nav-link @if(request()->routeIs('billing.*')) active @endif" href="{{ route('billing.index') }}"><i class="bi bi-credit-card me-2"></i>Plan & billing</a></li>
+                        <li><a class="nav-link @if(request()->routeIs('support.*')) active @endif" href="{{ route('support.index') }}"><i class="bi bi-life-preserver me-2"></i>Support</a></li>
                     @endcan
                 </ul>
             @endif
@@ -146,6 +153,19 @@
     </aside>
 
     <main class="flex-grow-1 p-3 p-md-4" style="min-width: 0">
+        @if ($tenant)
+            @inject('subscriptions', 'App\Services\Billing\SubscriptionService')
+            @php($notice = $subscriptions->notice($tenant))
+            @if ($notice)
+                <div class="alert alert-{{ $notice[0] }} py-2 small d-flex flex-wrap justify-content-between align-items-center gap-2 d-print-none">
+                    <span>{{ $notice[1] }}</span>
+                    @can('update', $tenant)<a href="{{ route('billing.index') }}" class="alert-link">Plan & billing</a>@endcan
+                </div>
+            @endif
+            @foreach (\App\Models\PlatformAnnouncement::query()->visible()->limit(2)->get() as $pa)
+                <div class="alert alert-light border py-2 small d-print-none"><i class="bi bi-megaphone me-1"></i><strong>{{ $pa->title }}</strong> — {{ $pa->body }}</div>
+            @endforeach
+        @endif
         @include('partials.flash')
         @yield('content')
     </main>

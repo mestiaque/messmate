@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-11-03
+Last updated: 2026-11-04
 
 ## Phase checklist
 
@@ -12,7 +12,7 @@ Last updated: 2026-11-03
 | 4 | Calculation engine, settlement | Complete on the private test instance: 129/129 tests, browser-tested. Re-run on the real DB pending |
 | 5 | Dashboards, reports, member portal | Complete on the private test instance: 140/140 tests, browser-tested. Excel/PDF via CSV + print (see below) |
 | 6 | Subscriptions, platform billing | Complete on the private test instance: 163/163 tests, browser-tested. Real gateway not integrated (sandbox + manual) |
-| 7 | Security/performance audit, release | Not started |
+| 7 | Security/performance audit, release | Complete on the private test instance: 171/171 tests, fresh install via `messmate:install` verified. See AUDIT_REPORT.md |
 
 ## Phase 1 — delivered
 
@@ -214,6 +214,15 @@ Verified 2026-11-03 on a private MySQL 8.4.11 instance: `migrate:fresh --seed` O
   support ticket round trip, platform announcement banner. No console errors.
 - Fixed during verification: confirming a monthly payment after a paid year reset the end date to one month
   from now (11 paid months lost); provider labels truncated; "Renew" shown during a trial.
+
+## Phase 7 verification (2026-11-04, private MySQL 8.4.11)
+
+- `php artisan test` 171/171 (899 assertions), including the new release suite (password reset, security
+  headers, installer, cross-tenant sweep of 31 scoped screens).
+- `messmate:install --demo` on an empty database: migrations, base data, admin and demo data OK.
+- `messmate:check` with `APP_ENV=production APP_DEBUG=true` fails as intended.
+- Found and fixed: no password reset flow; seeder could create a default-password admin in production;
+  payment mail was sent synchronously inside the payment transaction; no security headers.
 
 ## Known issues
 

@@ -38,7 +38,7 @@ abstract class TestCase extends BaseTestCase
      *
      * @return array{0: Mess, 1: AccountingPeriod}
      */
-    protected function messWithOpenPeriod(string $start = null, string $end = null): array
+    protected function messWithOpenPeriod(?string $start = null, ?string $end = null): array
     {
         $mess = Mess::factory()->create();
         app(MealTypeService::class)->createDefaults($mess);

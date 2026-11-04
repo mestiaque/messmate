@@ -2,6 +2,7 @@
 @section('title', 'Log in')
 @section('content')
     <h2 class="h5 mb-3">Log in</h2>
+    @if (session('status'))<div class="alert alert-success small">{{ session('status') }}</div>@endif
     <form method="POST" action="{{ route('login') }}">
         @csrf
         <div class="mb-3">
@@ -19,5 +20,5 @@
         </div>
         <button class="btn btn-primary w-100">Log in</button>
     </form>
-    <p class="text-center small mt-3 mb-0">No account? <a href="{{ route('register') }}">Register</a></p>
+    <p class="text-center small mt-3 mb-0"><a href="{{ route('password.request') }}">Forgot password?</a> · No account? <a href="{{ route('register') }}">Register</a></p>
 @endsection

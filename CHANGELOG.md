@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added — Phase 7 (production release)
+- Password reset by email (throttled, no account enumeration).
+- `messmate:install` installation wizard and `messmate:check` environment validation.
+- Security headers middleware and configurable trusted proxies.
+- Release test suite: password reset, headers, installer, cross-tenant sweep of every scoped screen.
+- Deployment, upgrade, backup/restore, user and developer guides; production `.env` template; license; audit report.
+
+### Changed — Phase 7
+- `DatabaseSeeder` no longer creates a platform admin with a default password outside local/testing.
+- Payment-receipt emails are queued and sent after the transaction commits.
+
 ### Added — Phase 6 (subscriptions and platform)
 - Subscription plans, trials, limits and features; read-only mode for lapsed subscriptions.
 - Checkout with invoices, manual and sandbox payment providers, signed idempotent callbacks, renewals and carry-over.

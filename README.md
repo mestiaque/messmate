@@ -4,6 +4,16 @@ Multi-tenant mess management SaaS (Laravel 13, PHP 8.3+, MySQL 8, Blade + Bootst
 
 See `masterprompt.md` for the full specification and `PROJECT_STATUS.md` for what is built so far.
 
+| Document | For |
+|---|---|
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Production install: requirements, installer, migrations, seeders, storage, queue, scheduler, Nginx, logging |
+| [docs/UPGRADE.md](docs/UPGRADE.md) | Upgrading and rolling back |
+| [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md) | Backups and restore |
+| [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | Owners, managers and members |
+| [docs/DEVELOPER.md](docs/DEVELOPER.md) | Code layout and rules for contributors |
+| [AUDIT_REPORT.md](AUDIT_REPORT.md) | Security / performance audit and known limitations |
+| [LICENSE.md](LICENSE.md) | License (template) and third-party licenses |
+
 ## Setup
 
 Requirements: PHP 8.3+ with `pdo_mysql`, `bcmath`, `mbstring`, `intl`; Composer; MySQL 8.
@@ -27,6 +37,15 @@ GRANT ALL PRIVILEGES ON messmate_test.* TO 'messmate'@'localhost';
 Set `DB_USERNAME` / `DB_PASSWORD` in `.env`. Tests use `messmate_test` (see `phpunit.xml`) with the same
 credentials; set `DB_PASSWORD` there too or export it in your shell.
 
+Quickest path — the installer validates the environment, migrates, seeds and creates the admin:
+
+```bash
+php artisan messmate:install --demo   # interactive; --demo only outside production
+php artisan messmate:check            # environment validation on its own
+```
+
+Or by hand:
+
 ```bash
 php artisan migrate --seed   # roles/permissions + platform admin (+ demo data when APP_ENV=local)
 php artisan serve
@@ -34,7 +53,7 @@ php artisan test
 ```
 
 After pulling a new phase on an existing database: `php artisan migrate` then
-`php artisan db:seed --class=RolesAndPermissionsSeeder` (idempotent; adds new permissions to system roles).
+`php artisan db:seed --class=BaseDataSeeder` (idempotent; adds new permissions and plans). See docs/UPGRADE.md.
 
 ### Seeded accounts (password: `password`)
 

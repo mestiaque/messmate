@@ -3,12 +3,22 @@
 namespace App\Notifications;
 
 use App\Models\Invoice;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class SubscriptionPaymentReceived extends Notification
+/**
+ * Queued, and only dispatched once the payment transaction has committed.
+ */
+class SubscriptionPaymentReceived extends Notification implements ShouldQueue
 {
-    public function __construct(private readonly Invoice $invoice) {}
+    use Queueable;
+
+    public function __construct(private readonly Invoice $invoice)
+    {
+        $this->afterCommit();
+    }
 
     public function via(object $notifiable): array
     {

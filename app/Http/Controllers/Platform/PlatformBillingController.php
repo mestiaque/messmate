@@ -24,7 +24,7 @@ class PlatformBillingController extends Controller
 
     public function plans(): View
     {
-        return view('platform.plans', ['plans' => SubscriptionPlan::query()->orderBy('sort_order')->get(), 'features' => PlanSeeder::FEATURES]);
+        return view('platform.plans', ['plans' => SubscriptionPlan::query()->withCount('subscriptions')->orderBy('sort_order')->get(), 'features' => PlanSeeder::FEATURES]);
     }
 
     public function storePlan(Request $request): RedirectResponse

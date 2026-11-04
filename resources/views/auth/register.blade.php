@@ -1,7 +1,8 @@
 @extends('layouts.guest')
 @section('title', 'Register')
 @section('content')
-    <h2 class="h5 mb-3">Create account</h2>
+    <h1 class="h3 mb-1">Create your account</h1>
+    <p class="text-muted mb-4">Start a free trial. No card needed.</p>
     <form method="POST" action="{{ route('register') }}">
         @csrf
         <div class="mb-3">

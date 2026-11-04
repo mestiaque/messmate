@@ -1,9 +1,10 @@
 @extends('layouts.app')
 @section('title', $ticket->subject)
+@section('narrow', '1')
 @section('content')
     <h1 class="h4 mb-1">{{ $ticket->subject }}</h1>
     <div class="small text-muted mb-3">{{ $tenant->name }} · {{ $ticket->status }}</div>
-    <div style="max-width: 760px">
+    <div>
         @foreach ($ticket->messages as $m)
             <div class="card border-0 shadow-sm mb-2 {{ $m->is_staff ? 'ms-4 bg-primary-subtle' : 'me-4' }}"><div class="card-body py-2">
                 <div class="small text-muted">{{ $m->is_staff ? config('app.name').' support' : $m->user?->name }} · {{ $m->created_at->format('d M Y H:i') }}</div>

@@ -20,7 +20,7 @@
     </div>
 
     @if ($canManage)
-        <div class="card border-0 shadow-sm mb-3">
+        <div class="card border-0 shadow-sm mb-3" id="new">
             <div class="card-header bg-white fw-semibold">Record a deposit</div>
             <div class="card-body">
                 <form method="POST" action="{{ route('deposits.store') }}" enctype="multipart/form-data" class="row g-2 align-items-end">

@@ -35,6 +35,8 @@
             @endforeach
         </div>
 
+        @include('settlements._steps')
+
         @if ($canManage && ! $final)
             <div class="card border-0 shadow-sm mb-3">
                 <div class="card-body d-flex flex-wrap gap-2 align-items-center">
@@ -45,9 +47,15 @@
                             <input type="hidden" name="period_id" value="{{ $period->id }}">
                             <button class="btn btn-primary" @disabled($result['errors'])>Finalize settlement</button></form>
                     @elseif ($period->status->value === 'open')
-                        <span class="small text-muted">Move the period to <a href="{{ route('periods.index') }}">review</a> to finalize.</span>
+                        @can('managePeriods', $mess)
+                            <form method="POST" action="{{ route('periods.transition', ['period' => $period]) }}" onsubmit="return confirm('Start review of {{ $period->name }}? New meals and money entries are blocked while it is in review (you can move it back to open).')">
+                                @csrf @method('PUT') <input type="hidden" name="status" value="reviewing">
+                                <button class="btn btn-primary" @disabled($result['errors'])><i class="bi bi-arrow-right-circle"></i> Start review</button>
+                            </form>
+                        @else
+                            <span class="small text-muted">A manager must move the period to review before it can be finalized.</span>
+                        @endcan
                     @endif
-                    @if ($pending)<span class="small text-warning">{{ $pending }} meal record(s) pending approval.</span>@endif
                     <button class="btn btn-link btn-sm ms-auto" data-bs-toggle="collapse" data-bs-target="#policy">Calculation settings</button>
                 </div>
                 <div class="collapse border-top @if($errors->hasAny(['strategy', 'custom_rate'])) show @endif" id="policy">

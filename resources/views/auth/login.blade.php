@@ -1,7 +1,8 @@
 @extends('layouts.guest')
 @section('title', 'Log in')
 @section('content')
-    <h2 class="h5 mb-3">Log in</h2>
+    <h1 class="h3 mb-1">Welcome back</h1>
+    <p class="text-muted mb-4">Log in to manage your mess.</p>
     @if (session('status'))<div class="alert alert-success small">{{ session('status') }}</div>@endif
     <form method="POST" action="{{ route('login') }}">
         @csrf

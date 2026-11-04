@@ -8,158 +8,63 @@
     <title>@yield('title', 'Dashboard') · {{ config('app.name') }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <style>
-        body { background: #f5f7fb; }
-        .sidebar { width: 250px; min-height: 100vh; }
-        @media (min-width: 992px) { .sidebar { flex-shrink: 0; } }
-        .sidebar .nav-link { color: #495057; border-radius: .375rem; }
-        .sidebar .nav-link.active, .sidebar .nav-link:hover { background: #e9efff; color: #0d6efd; }
-        .sidebar-heading { font-size: .7rem; letter-spacing: .06em; }
-        .stat-card .value { font-size: 1.6rem; font-weight: 600; }
-        @media print { .sidebar, .navbar, .d-print-none { display: none !important; } main { padding: 0 !important; } body { background: #fff; } .card { box-shadow: none !important; } }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{{ asset('css/messmate.css') }}?v=3" rel="stylesheet">
 </head>
 <body>
 @php($tenant = $ctx->tenant())
 @php($mess = $ctx->mess())
-<nav class="navbar navbar-expand bg-white border-bottom px-3 sticky-top">
-    <button class="btn btn-outline-secondary d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-label="Menu">
-        <i class="bi bi-list"></i>
-    </button>
-    <a class="navbar-brand fw-semibold" href="{{ route('home') }}">{{ config('app.name') }}</a>
-    @if ($tenant)
-        <span class="text-muted small d-none d-md-inline text-truncate">
-            {{ $tenant->name }}@if ($mess) / {{ $mess->name }}@endif
-        </span>
-    @endif
-    <div class="ms-auto dropdown">
-        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
-            <i class="bi bi-person-circle"></i> <span class="d-none d-sm-inline">{{ auth()->user()->name }}</span>
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="{{ route('home') }}"><i class="bi bi-arrow-left-right me-2"></i>Switch organization / mess</a></li>
-            <li><a class="dropdown-item" href="{{ route('profile.edit') }}"><i class="bi bi-person me-2"></i>Profile</a></li>
-            @if (auth()->user()->is_platform_admin)
-                <li><a class="dropdown-item" href="{{ route('platform.dashboard') }}"><i class="bi bi-shield-lock me-2"></i>Platform admin</a></li>
-            @endif
-            <li><hr class="dropdown-divider"></li>
-            <li>
-                <form method="POST" action="{{ route('logout') }}">@csrf
-                    <button class="dropdown-item"><i class="bi bi-box-arrow-right me-2"></i>Log out</button>
-                </form>
-            </li>
-        </ul>
-    </div>
-</nav>
-
-<div class="d-flex">
-    <aside class="offcanvas-lg offcanvas-start bg-white border-end sidebar" tabindex="-1" id="sidebar">
-        <div class="offcanvas-header d-lg-none">
-            <h5 class="offcanvas-title">Menu</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebar"></button>
-        </div>
-        <div class="offcanvas-body d-block p-3">
-            @if (request()->routeIs('platform.*'))
-                <div class="sidebar-heading text-uppercase text-muted mb-2">Platform</div>
-                <ul class="nav flex-column mb-3">
-                    <li><a class="nav-link @if(request()->routeIs('platform.dashboard')) active @endif" href="{{ route('platform.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
-                    <li><a class="nav-link @if(request()->routeIs('platform.tenants.*')) active @endif" href="{{ route('platform.tenants.index') }}"><i class="bi bi-buildings me-2"></i>Organizations</a></li>
-                    <li><a class="nav-link @if(request()->routeIs('platform.plans.*')) active @endif" href="{{ route('platform.plans.index') }}"><i class="bi bi-boxes me-2"></i>Plans</a></li>
-                    <li><a class="nav-link @if(request()->routeIs('platform.payments.*')) active @endif" href="{{ route('platform.payments.index') }}"><i class="bi bi-credit-card me-2"></i>Payments & invoices</a></li>
-                    <li><a class="nav-link @if(request()->routeIs('platform.tickets.*')) active @endif" href="{{ route('platform.tickets.index') }}"><i class="bi bi-life-preserver me-2"></i>Support tickets</a></li>
-                    <li><a class="nav-link @if(request()->routeIs('platform.announcements.*')) active @endif" href="{{ route('platform.announcements.index') }}"><i class="bi bi-megaphone me-2"></i>Announcements</a></li>
-                    <li><a class="nav-link @if(request()->routeIs('platform.settings')) active @endif" href="{{ route('platform.settings') }}"><i class="bi bi-gear me-2"></i>Settings</a></li>
-                </ul>
-            @endif
-            @if ($tenant)
-                <div class="sidebar-heading text-uppercase text-muted mb-2">Organization</div>
-                <ul class="nav flex-column mb-3">
-                    <li><a class="nav-link @if(request()->routeIs('tenant.dashboard')) active @endif" href="{{ route('tenant.dashboard') }}"><i class="bi bi-grid me-2"></i>Overview</a></li>
-                    @can('update', $tenant)
-                        <li><a class="nav-link @if(request()->routeIs('tenant.settings.*')) active @endif" href="{{ route('tenant.settings.edit') }}"><i class="bi bi-gear me-2"></i>Settings</a></li>
-                        <li><a class="nav-link @if(request()->routeIs('billing.*')) active @endif" href="{{ route('billing.index') }}"><i class="bi bi-credit-card me-2"></i>Plan & billing</a></li>
-                        <li><a class="nav-link @if(request()->routeIs('support.*')) active @endif" href="{{ route('support.index') }}"><i class="bi bi-life-preserver me-2"></i>Support</a></li>
-                    @endcan
-                </ul>
-            @endif
-            @if ($mess)
-                <div class="sidebar-heading text-uppercase text-muted mb-2 text-truncate">{{ $mess->name }}</div>
-                <ul class="nav flex-column mb-3">
-                    <li><a class="nav-link @if(request()->routeIs('mess.dashboard')) active @endif" href="{{ route('mess.dashboard') }}"><i class="bi bi-house me-2"></i>Dashboard</a></li>
-                    @can('viewMembers', $mess)
-                        <li><a class="nav-link @if(request()->routeIs('members.*')) active @endif" href="{{ route('members.index') }}"><i class="bi bi-people me-2"></i>Members</a></li>
-                    @endcan
-                    @if ($ctx->member())
-                        <li><a class="nav-link @if(request()->routeIs('portal.index')) active @endif" href="{{ route('portal.index') }}"><i class="bi bi-person-badge me-2"></i>My portal</a></li>
-                        <li><a class="nav-link @if(request()->routeIs('members.show') && request()->route('member')?->id === $ctx->member()->id) active @endif" href="{{ route('members.show', ['member' => $ctx->member()]) }}"><i class="bi bi-person-vcard me-2"></i>My meals</a></li>
-                    @endif
-                    <li><a class="nav-link @if(request()->routeIs('meals.calendar')) active @endif" href="{{ route('meals.calendar') }}"><i class="bi bi-calendar3 me-2"></i>Meal calendar</a></li>
-                    @can('viewMeals', $mess)
-                        <li><a class="nav-link @if(request()->routeIs('meals.daily')) active @endif" href="{{ route('meals.daily') }}"><i class="bi bi-egg-fried me-2"></i>Daily meals</a></li>
-                        <li><a class="nav-link @if(request()->routeIs('meals.guests')) active @endif" href="{{ route('meals.guests') }}"><i class="bi bi-person-plus me-2"></i>Guest meals</a></li>
-                        <li><a class="nav-link @if(request()->routeIs('meals.adjustments')) active @endif" href="{{ route('meals.adjustments') }}"><i class="bi bi-plus-slash-minus me-2"></i>Adjustments</a></li>
-                    @endcan
-                    @can('approveMeals', $mess)
-                        <li><a class="nav-link @if(request()->routeIs('meals.approvals')) active @endif" href="{{ route('meals.approvals') }}"><i class="bi bi-check2-square me-2"></i>Approvals</a></li>
-                    @endcan
-                    <li><a class="nav-link @if(request()->routeIs('periods.*')) active @endif" href="{{ route('periods.index') }}"><i class="bi bi-calendar-range me-2"></i>Periods</a></li>
-                    @can('manageMealTypes', $mess)
-                        <li><a class="nav-link @if(request()->routeIs('meal-types.*')) active @endif" href="{{ route('meal-types.index') }}"><i class="bi bi-list-ol me-2"></i>Meal types</a></li>
-                    @endcan
-                    @if (auth()->user()->can('viewMeals', $mess) || auth()->user()->can('viewFinance', $mess))
-                        <li><a class="nav-link @if(request()->routeIs('reports.*')) active @endif" href="{{ route('reports.index') }}"><i class="bi bi-file-earmark-spreadsheet me-2"></i>Reports</a></li>
-                    @endif
-                    @can('manageAnnouncements', $mess)
-                        <li><a class="nav-link @if(request()->routeIs('announcements.*')) active @endif" href="{{ route('announcements.index') }}"><i class="bi bi-megaphone me-2"></i>Announcements</a></li>
-                    @endcan
-                    @can('update', $mess)
-                        <li><a class="nav-link @if(request()->routeIs('mess.edit')) active @endif" href="{{ route('mess.edit') }}"><i class="bi bi-sliders me-2"></i>Mess settings</a></li>
-                    @endcan
-                </ul>
-                @php($u = auth()->user())
-                @if ($u->can('manageBazar', $mess) || $u->can('approveBazar', $mess) || $u->can('manageExpenses', $mess) || $u->can('manageDeposits', $mess) || $u->can('viewFinance', $mess))
-                    <div class="sidebar-heading text-uppercase text-muted mb-2">Finance</div>
-                    <ul class="nav flex-column mb-3">
-                        @if ($u->can('manageBazar', $mess) || $u->can('approveBazar', $mess) || $u->can('viewFinance', $mess))
-                            <li><a class="nav-link @if(request()->routeIs('bazar.*')) active @endif" href="{{ route('bazar.index') }}"><i class="bi bi-basket me-2"></i>Bazar</a></li>
-                        @endif
-                        @if ($u->can('manageExpenses', $mess) || $u->can('approveExpenses', $mess) || $u->can('viewFinance', $mess))
-                            <li><a class="nav-link @if(request()->routeIs('expenses.*')) active @endif" href="{{ route('expenses.index') }}"><i class="bi bi-receipt me-2"></i>Expenses</a></li>
-                        @endif
-                        @if ($u->can('manageDeposits', $mess) || $u->can('approveDeposits', $mess) || $u->can('viewFinance', $mess))
-                            <li><a class="nav-link @if(request()->routeIs('deposits.*')) active @endif" href="{{ route('deposits.index') }}"><i class="bi bi-wallet2 me-2"></i>Deposits</a></li>
-                        @endif
-                        @can('viewFinance', $mess)
-                            <li><a class="nav-link @if(request()->routeIs('settlements.*')) active @endif" href="{{ route('settlements.index') }}"><i class="bi bi-calculator me-2"></i>Settlement</a></li>
-                        @endcan
-                        @if ($u->can('manageAdjustments', $mess))
-                            <li><a class="nav-link @if(request()->routeIs('financial-adjustments.*')) active @endif" href="{{ route('financial-adjustments.index') }}"><i class="bi bi-arrow-left-right me-2"></i>Credits & debits</a></li>
-                        @endif
-                        @can('viewFinance', $mess)
-                            <li><a class="nav-link @if(request()->routeIs('finance.report')) active @endif" href="{{ route('finance.report') }}"><i class="bi bi-bar-chart me-2"></i>Period report</a></li>
-                            <li><a class="nav-link @if(request()->routeIs('ledger.balances')) active @endif" href="{{ route('ledger.balances') }}"><i class="bi bi-cash-stack me-2"></i>Balances</a></li>
-                            <li><a class="nav-link @if(request()->routeIs('ledger.index')) active @endif" href="{{ route('ledger.index') }}"><i class="bi bi-journal-text me-2"></i>Ledger</a></li>
-                        @endcan
-                        @can('manageFinanceSettings', $mess)
-                            <li><a class="nav-link @if(request()->routeIs('finance.settings')) active @endif" href="{{ route('finance.settings') }}"><i class="bi bi-tags me-2"></i>Categories</a></li>
-                        @endcan
-                    </ul>
-                @endif
-            @endif
-            <ul class="nav flex-column">
-                <li><a class="nav-link @if(request()->routeIs('home')) active @endif" href="{{ route('home') }}"><i class="bi bi-collection me-2"></i>All organizations</a></li>
-            </ul>
-        </div>
+<div class="mm-shell">
+    <aside class="offcanvas-lg offcanvas-start mm-sidebar" tabindex="-1" id="sidebar" aria-label="Navigation">
+        <div class="d-lg-none text-end p-2"><button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebar" aria-label="Close"></button></div>
+        @include('partials.sidebar')
     </aside>
 
-    <main class="flex-grow-1 p-3 p-md-4" style="min-width: 0">
+    <div class="mm-main">
+        <header class="mm-topbar d-print-none">
+            <button class="btn btn-light btn-sm d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-label="Menu"><i class="bi bi-list fs-5"></i></button>
+            <div class="mm-crumbs">
+                @if ($tenant)
+                    <a href="{{ route('tenant.dashboard', ['tenant' => $tenant]) }}">{{ $tenant->name }}</a>
+                    @if ($mess)<span class="sep">/</span><a href="{{ route('mess.dashboard', ['tenant' => $tenant, 'mess' => $mess]) }}">{{ $mess->name }}</a>@endif
+                    @if (! request()->routeIs('mess.dashboard', 'tenant.dashboard'))<span class="sep">/</span>@endif
+                @elseif (request()->routeIs('platform.*') && ! request()->routeIs('platform.dashboard'))
+                    <a href="{{ route('platform.dashboard') }}">Platform</a><span class="sep">/</span>
+                @endif
+                @unless ($tenant && request()->routeIs('mess.dashboard', 'tenant.dashboard'))<span class="text-body fw-medium">@yield('title', 'Dashboard')</span>@endunless
+            </div>
+            <div class="ms-auto dropdown">
+                <button class="mm-user dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="mm-avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span>
+                    <span class="d-none d-sm-inline">{{ auth()->user()->name }}</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li class="px-2 py-1 small text-muted text-truncate" style="max-width: 240px">{{ auth()->user()->email ?? auth()->user()->phone }}</li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{{ route('home') }}"><i class="bi bi-arrow-left-right me-2"></i>Switch organization / mess</a></li>
+                    <li><a class="dropdown-item" href="{{ route('profile.edit') }}"><i class="bi bi-person me-2"></i>Profile</a></li>
+                    @if (auth()->user()->is_platform_admin)
+                        <li><a class="dropdown-item" href="{{ route('platform.dashboard') }}"><i class="bi bi-shield-lock me-2"></i>Platform admin</a></li>
+                    @endif
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form method="POST" action="{{ route('logout') }}">@csrf
+                            <button class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Log out</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </header>
+
+        <main class="mm-content @hasSection('narrow') mm-narrow @endif">
         @if ($tenant)
             @inject('subscriptions', 'App\Services\Billing\SubscriptionService')
             @php($notice = $subscriptions->notice($tenant))
             @if ($notice)
                 <div class="alert alert-{{ $notice[0] }} py-2 small d-flex flex-wrap justify-content-between align-items-center gap-2 d-print-none">
-                    <span>{{ $notice[1] }}</span>
-                    @can('update', $tenant)<a href="{{ route('billing.index') }}" class="alert-link">Plan & billing</a>@endcan
+                    <span><i class="bi bi-{{ $notice[0] === 'info' ? 'stars' : 'exclamation-triangle' }} me-1"></i>{{ $notice[1] }}</span>
+                    @if (! request()->routeIs('billing.*') && auth()->user()->can('update', $tenant))<a href="{{ route('billing.index') }}" class="alert-link">Plan & billing</a>@endif
                 </div>
             @endif
             @foreach (\App\Models\PlatformAnnouncement::query()->visible()->limit(2)->get() as $pa)
@@ -169,7 +74,9 @@
         @include('partials.flash')
         @yield('content')
     </main>
+    </div>
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 @stack('scripts')

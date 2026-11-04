@@ -1,9 +1,10 @@
 @extends('layouts.app')
 @section('title', 'Add member')
+@section('narrow', '1')
 @section('content')
     <h1 class="h4 mb-1">Add member without account</h1>
     <p class="text-muted small">For people who will not log in. You can link a registered account later.</p>
-    <div class="card border-0 shadow-sm" style="max-width: 720px">
+    <div class="card border-0 shadow-sm">
         <div class="card-body">
             <form method="POST" action="{{ route('members.store-manual') }}">
                 @csrf

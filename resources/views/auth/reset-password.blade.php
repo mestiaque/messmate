@@ -1,7 +1,7 @@
 @extends('layouts.guest')
 @section('title', 'Choose a new password')
 @section('content')
-    <h2 class="h5 mb-3">Choose a new password</h2>
+    <h1 class="h3 mb-4">Choose a new password</h1>
     <form method="POST" action="{{ route('password.update') }}">
         @csrf
         <input type="hidden" name="token" value="{{ $token }}">

@@ -16,6 +16,8 @@
         @endif
     </div>
 
+    @include('messes._quick-actions')
+
     @if (! $summary)
         <div class="card border-0 shadow-sm"><div class="card-body text-center text-muted py-5">
             <i class="bi bi-calendar-plus fs-1 d-block mb-2"></i>
@@ -68,9 +70,16 @@
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-header bg-white fw-semibold">Pending approvals</div>
                     <ul class="list-group list-group-flush">
+                        @php($pendingLinks = ['Meals' => [route('meals.approvals'), 'approveMeals'], 'Bazar' => [route('bazar.index', ['status' => 'submitted']), 'approveBazar'], 'Expenses' => [route('expenses.index', ['status' => 'submitted']), 'approveExpenses'], 'Deposits' => [route('deposits.index', ['status' => 'pending']), 'approveDeposits']])
                         @foreach ($summary['pending'] as $label => $count)
-                            <li class="list-group-item d-flex justify-content-between">{{ $label }}
-                                <span class="badge rounded-pill text-bg-{{ $count ? 'warning' : 'light border' }}">{{ $count }}</span></li>
+                            @php([$href, $ability] = $pendingLinks[$label] ?? [null, null])
+                            @if ($href && $count && auth()->user()->can($ability, $mess))
+                                <a href="{{ $href }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">{{ $label }}
+                                    <span><span class="badge rounded-pill text-bg-warning">{{ $count }}</span><i class="bi bi-chevron-right ms-2 text-muted small"></i></span></a>
+                            @else
+                                <li class="list-group-item d-flex justify-content-between">{{ $label }}
+                                    <span class="badge rounded-pill text-bg-{{ $count ? 'warning' : 'light border' }}">{{ $count }}</span></li>
+                            @endif
                         @endforeach
                     </ul>
                 </div>

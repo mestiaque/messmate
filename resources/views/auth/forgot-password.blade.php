@@ -1,7 +1,8 @@
 @extends('layouts.guest')
 @section('title', 'Forgot password')
 @section('content')
-    <h2 class="h5 mb-3">Reset your password</h2>
+    <h1 class="h3 mb-1">Reset your password</h1>
+    <p class="text-muted mb-4">We will email you a reset link.</p>
     @if (session('status'))<div class="alert alert-success small">{{ session('status') }}</div>@endif
     <form method="POST" action="{{ route('password.email') }}">
         @csrf

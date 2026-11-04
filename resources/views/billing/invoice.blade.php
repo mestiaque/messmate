@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Invoice '.$invoice->invoice_number)
+@section('narrow', '1')
 @section('content')
     <div class="d-flex justify-content-between align-items-start mb-3">
         <div>
@@ -9,7 +10,7 @@
         <div class="d-flex gap-2 d-print-none"><span class="badge fs-6 text-bg-{{ $invoice->status === 'paid' ? 'success' : 'warning' }}">{{ $invoice->status }}</span>
             <button class="btn btn-sm btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer"></i> Print / PDF</button></div>
     </div>
-    <div class="card border-0 shadow-sm" style="max-width: 720px"><div class="card-body">
+    <div class="card border-0 shadow-sm"><div class="card-body">
         <p class="mb-3"><strong>Billed to:</strong> {{ $tenant->name }}<br><span class="small text-muted">{{ $tenant->email }} {{ $tenant->phone }}</span></p>
         <table class="table">
             <thead><tr><th>Description</th><th class="text-end">Amount</th></tr></thead>

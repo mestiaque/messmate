@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'My meals')
+@section('narrow', '1')
 @section('content')
     @php($fmt = fn ($v) => rtrim(rtrim((string) $v, '0'), '.') ?: '0')
     @php($locked = $entry && $entry->status->value === 'approved')
@@ -12,7 +13,7 @@
             <a class="btn btn-outline-secondary" href="{{ route('portal.meals', ['date' => $date->copy()->addDay()->toDateString()]) }}" aria-label="Next day"><i class="bi bi-chevron-right"></i></a>
         </form>
     </div>
-    <div class="card border-0 shadow-sm" style="max-width: 560px">
+    <div class="card border-0 shadow-sm">
         <div class="card-body">
             <div class="fw-semibold mb-2">{{ $date->format('l, d M Y') }}
                 @if ($entry)<span class="badge text-bg-{{ $entry->status->badge() }}">{{ $entry->status->value }}</span>@endif</div>

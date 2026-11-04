@@ -1,9 +1,10 @@
 @extends('layouts.app')
 @section('title', 'Mess settings')
+@section('narrow', '1')
 @section('content')
     @php($tenant = $mess->tenant)
     <h1 class="h4 mb-3">Mess settings</h1>
-    <div class="card border-0 shadow-sm" style="max-width: 720px">
+    <div class="card border-0 shadow-sm">
         <div class="card-body">
             <form method="POST" action="{{ route('mess.update') }}">
                 @csrf @method('PUT')

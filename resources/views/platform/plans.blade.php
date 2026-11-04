@@ -1,33 +1,53 @@
 @extends('layouts.app')
 @section('title', 'Plans')
 @section('content')
-    <h1 class="h4 mb-1">Subscription plans</h1>
-    <p class="small text-muted">Empty limit = unlimited. Limits apply to all tenants on the plan immediately; nothing is deleted when a tenant is over a limit, they just cannot add more.</p>
-    @foreach ([...$plans, null] as $plan)
-        @php($f = $plan ? 'plan-'.$plan->id : 'plan-new')
-        <form method="POST" action="{{ $plan ? route('platform.plans.update', $plan) : route('platform.plans.store') }}" class="card border-0 shadow-sm mb-3">
-            @csrf @if ($plan) @method('PUT') @endif
-            <div class="card-header bg-white fw-semibold">{{ $plan?->name ?? 'New plan' }}</div>
-            <div class="card-body row g-2">
-                <div class="col-md-3"><label class="form-label small">Name</label><input name="name" value="{{ $plan?->name }}" class="form-control form-control-sm" required></div>
-                <div class="col-md-2"><label class="form-label small">Slug</label><input name="slug" value="{{ $plan?->slug }}" class="form-control form-control-sm" required></div>
-                <div class="col-md-2"><label class="form-label small">Monthly</label><input name="monthly_price" value="{{ $plan?->monthly_price ?? 0 }}" class="form-control form-control-sm" required></div>
-                <div class="col-md-2"><label class="form-label small">Yearly</label><input name="yearly_price" value="{{ $plan?->yearly_price ?? 0 }}" class="form-control form-control-sm" required></div>
-                <div class="col-md-1"><label class="form-label small">Trial days</label><input name="trial_days" value="{{ $plan?->trial_days ?? 0 }}" class="form-control form-control-sm" required></div>
-                <div class="col-md-2"><label class="form-label small">Order</label><input name="sort_order" value="{{ $plan?->sort_order ?? 0 }}" class="form-control form-control-sm"></div>
-                <div class="col-md-2"><label class="form-label small">Max messes</label><input name="max_messes" value="{{ $plan?->max_messes }}" class="form-control form-control-sm"></div>
-                <div class="col-md-2"><label class="form-label small">Members / mess</label><input name="max_members_per_mess" value="{{ $plan?->max_members_per_mess }}" class="form-control form-control-sm"></div>
-                <div class="col-md-2"><label class="form-label small">Max users</label><input name="max_users" value="{{ $plan?->max_users }}" class="form-control form-control-sm"></div>
-                <div class="col-md-6"><label class="form-label small">Description</label><input name="description" value="{{ $plan?->description }}" class="form-control form-control-sm"></div>
-                <div class="col-12 d-flex flex-wrap gap-3 align-items-center">
-                    @foreach ($features as $key => $label)
-                        <div class="form-check"><input class="form-check-input" type="checkbox" name="features[]" value="{{ $key }}" id="{{ $f }}-{{ $key }}" @checked($plan?->hasFeature($key))><label class="form-check-label small" for="{{ $f }}-{{ $key }}">{{ $label }}</label></div>
-                    @endforeach
-                    <input type="hidden" name="is_active" value="0">
-                    <div class="form-check"><input class="form-check-input" type="checkbox" name="is_active" value="1" id="{{ $f }}-active" @checked($plan?->is_active ?? true)><label class="form-check-label small" for="{{ $f }}-active">Available</label></div>
-                    <button class="btn btn-sm btn-primary ms-auto">{{ $plan ? 'Save' : 'Create plan' }}</button>
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+        <div>
+            <h1 class="h4 mb-1">Subscription plans</h1>
+            <p class="small text-muted mb-0">Changes apply to every organization on the plan at once. Over-limit organizations keep their data but cannot add more.</p>
+        </div>
+        <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#edit-plan-new"><i class="bi bi-plus-lg"></i> New plan</button>
+    </div>
+
+    <div class="collapse mb-3 @if($errors->any() && ! old('plan_id')) show @endif" id="edit-plan-new">
+        <div class="card border-0 shadow-sm"><div class="card-header">New plan</div>@include('platform._plan-form', ['plan' => null])</div>
+    </div>
+
+    <div class="row g-3">
+        @foreach ($plans as $plan)
+            @php($open = $errors->any() && (int) old('plan_id') === $plan->id)
+            <div class="col-md-6 col-xxl-3">
+                <div class="card border-0 shadow-sm mm-plan @unless($plan->is_active) inactive @endunless">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <div class="fw-semibold">{{ $plan->name }} <span class="text-muted small fw-normal">· {{ $plan->slug }}</span></div>
+                                <div class="small text-muted">{{ $plan->description }}</div>
+                            </div>
+                            <span class="badge text-bg-{{ $plan->is_active ? 'success' : 'secondary' }}">{{ $plan->is_active ? 'Available' : 'Hidden' }}</span>
+                        </div>
+                        <div class="price my-2">
+                            @if ($plan->isFree()) Free @else {{ number_format($plan->monthly_price, 0) }}<small> /month · {{ number_format($plan->yearly_price, 0) }} /year</small> @endif
+                        </div>
+                        <div class="limits mb-3">
+                            <div><b>{{ $plan->max_messes ?? '∞' }}</b><span>Messes</span></div>
+                            <div><b>{{ $plan->max_members_per_mess ?? '∞' }}</b><span>Members/mess</span></div>
+                            <div><b>{{ $plan->max_users ?? '∞' }}</b><span>Users</span></div>
+                        </div>
+                        <ul class="list-unstyled small mb-3">
+                            @foreach ($features as $key => $label)
+                                <li class="mb-1 {{ $plan->hasFeature($key) ? '' : 'text-muted' }}"><i class="bi bi-{{ $plan->hasFeature($key) ? 'check-circle-fill text-success' : 'dash-circle' }} me-2"></i>{{ $label }}</li>
+                            @endforeach
+                            <li class="mb-1"><i class="bi bi-hourglass-split me-2 text-muted"></i>{{ $plan->trial_days ? $plan->trial_days.'-day trial' : 'No trial' }}</li>
+                        </ul>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small text-muted"><i class="bi bi-buildings me-1"></i>{{ $plan->subscriptions_count }} organization(s)</span>
+                            <button class="btn btn-sm btn-outline-secondary @unless($open) collapsed @endunless" data-bs-toggle="collapse" data-bs-target="#edit-plan-{{ $plan->id }}"><i class="bi bi-pencil"></i> Edit</button>
+                        </div>
+                    </div>
+                    <div class="collapse border-top @if($open) show @endif" id="edit-plan-{{ $plan->id }}">@include('platform._plan-form', ['plan' => $plan])</div>
                 </div>
             </div>
-        </form>
-    @endforeach
+        @endforeach
+    </div>
 @endsection

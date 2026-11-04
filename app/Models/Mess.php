@@ -126,6 +126,11 @@ class Mess extends Model
         return $this->hasMany(Settlement::class);
     }
 
+    public function announcements(): HasMany
+    {
+        return $this->hasMany(MessAnnouncement::class);
+    }
+
     public function invitations(): HasMany
     {
         return $this->hasMany(MessInvitation::class);

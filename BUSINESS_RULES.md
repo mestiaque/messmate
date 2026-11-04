@@ -93,4 +93,14 @@
   (dated at period end), period back to open. Re-finalizing creates the next version.
 - **Payments:** direction comes from the settlement sign; amount ≤ outstanding; status partially_paid / paid.
 
+## Portal and reports (Phase 5)
+
+- Dashboard and portal figures come from the database; the meal rate shown before settlement is an estimate from
+  approved records.
+- Self-service meals are off by default. When on, members enter only their own meals (never by member id),
+  only in open periods, and cannot change a day once approved. With approval required, entries are submitted.
+- Report totals for bazar, expenses and deposits include approved records only.
+- Members may open their own ledger report; all other finance reports need `finance.view`, meal reports `meals.view`.
+- CSV cells that begin with `= + - @` (non-numeric) are prefixed with `'`.
+
 Financial and calculation rules: see `masterprompt.md` Part 5; they are recorded here as each phase implements them.

@@ -1,0 +1,38 @@
+<?php
+
+namespace App\Services\Portal;
+
+use App\Models\Mess;
+use App\Models\SystemSetting;
+use App\Services\Audit\AuditLogger;
+
+/**
+ * Member self-service options per mess, stored in system_settings.
+ */
+class PortalSettingsService
+{
+    private const KEY = 'member_portal';
+
+    public const DEFAULTS = ['self_service_meals' => false, 'require_approval' => true];
+
+    public function __construct(private readonly AuditLogger $audit) {}
+
+    /**
+     * @return array{self_service_meals: bool, require_approval: bool}
+     */
+    public function get(Mess $mess): array
+    {
+        $value = SystemSetting::query()->where('tenant_id', $mess->tenant_id)->where('mess_id', $mess->id)->where('key', self::KEY)->value('value');
+        $value = is_string($value) ? json_decode($value, true) : $value;
+
+        return array_map('boolval', array_intersect_key(($value ?? []) + self::DEFAULTS, self::DEFAULTS));
+    }
+
+    public function save(Mess $mess, bool $selfService, bool $requireApproval): void
+    {
+        $old = $this->get($mess);
+        $new = ['self_service_meals' => $selfService, 'require_approval' => $requireApproval];
+        SystemSetting::query()->updateOrCreate(['tenant_id' => $mess->tenant_id, 'mess_id' => $mess->id, 'key' => self::KEY], ['value' => $new]);
+        $this->audit->log('portal_settings.updated', $mess, $old, $new, $mess->tenant_id, $mess->id);
+    }
+}

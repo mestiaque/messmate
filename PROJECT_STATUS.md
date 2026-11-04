@@ -10,7 +10,7 @@ Last updated: 2026-11-03
 | 2 | Members, accounting periods, meals | Complete on the private test instance: 72/72 tests, browser-tested. Re-run on the real DB pending |
 | 3 | Bazar, expenses, deposits, ledger | Complete on the private test instance: 98/98 tests, browser-tested. Re-run on the real DB pending |
 | 4 | Calculation engine, settlement | Complete on the private test instance: 129/129 tests, browser-tested. Re-run on the real DB pending |
-| 5 | Dashboards, reports, member portal | Not started |
+| 5 | Dashboards, reports, member portal | Complete on the private test instance: 140/140 tests, browser-tested. Excel/PDF via CSV + print (see below) |
 | 6 | Subscriptions, platform billing | Not started |
 | 7 | Security/performance audit, release | Not started |
 
@@ -95,6 +95,27 @@ equal/meal-based expense shares are computed at settlement; Excel/PDF export is 
 Not implemented: a separate `refunds` table — refunds are `settlement_payments` of type `refund`; settlement status
 `reviewed` (drafts serve that role).
 
+## Phase 5 — delivered
+
+- Admin dashboard (per period): active members, meal units, estimated meal rate, bazar, other expenses,
+  deposits, what members owe, pending approvals, recent transactions, daily meal-unit line chart and daily
+  spending bar chart (Chart.js, single series, hover tooltips, data-table toggle, future days left blank).
+  Cached 60 s under a tenant+mess-scoped key.
+- Member portal (`/me`): today's meals, own units, estimated rate and closing, current balance, recent
+  transactions, statements, announcements. Plain members land here instead of the admin dashboard.
+- Self-service meal entry (per-mess switch, optional approval); approved days are locked for members.
+- Announcements with expiry/withdraw; portal settings.
+- Reports: daily meals, monthly meals by member, bazar, expenses, deposits, settlement, outstanding balances,
+  member ledger (members can read their own), plus the existing financial summary. Each renders in the browser,
+  prints cleanly (print stylesheet hides navigation), and downloads as UTF-8 CSV that opens in Excel.
+- N+1 guard test on eight list/report pages.
+
+**Not done as specified:** native `.xlsx` and server-generated PDF. Installing packages
+(`laravel/boost`, and a spreadsheet/PDF library) was blocked in this environment, so exports are CSV
+(opens in Excel, with BOM for Bangla and formula-injection protection) and PDF is via the browser's
+print-to-PDF. Adding e.g. `maatwebsite/excel` + `barryvdh/laravel-dompdf` later only needs a new writer for the
+existing report structure. Laravel Boost (required by CLAUDE.md) is also not installed yet.
+
 ## Phase 1 acceptance criteria
 
 | Criterion | Covered by |
@@ -150,6 +171,16 @@ Verified 2026-11-03 on a private MySQL 8.4.11 instance: `migrate:fresh --seed` O
   reversed) → re-finalize v2; ledger balanced throughout; member sees own statement. No console errors.
 - Fixed during this phase: test assumptions about which member receives the extra paisa (order is by member code);
   three weak assertions rewritten so they actually test something.
+
+## Phase 5 verification (2026-11-04, private MySQL 8.4.11)
+
+- `php artisan test` 140/140.
+- Headless Chrome: dashboard cards and both charts render with real figures; reports list/monthly/deposits/
+  outstanding; CSV headers and content; print media hides sidebar and buttons; announcement publish; member
+  redirected to portal with own balance and announcements; self-service submit; member blocked from another
+  member's ledger. No unexpected console errors.
+- Fixed during verification: the meal chart dropped to zero for days not yet reached; the portal ran the
+  settlement calculation twice.
 
 ## Known issues
 

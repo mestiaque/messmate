@@ -10,6 +10,7 @@ use App\Services\Finance\BazarService;
 use App\Services\Finance\DepositService;
 use App\Services\Finance\ExpenseService;
 use App\Services\Meals\MealEntryService;
+use App\Services\Portal\PortalSettingsService;
 use App\Services\Periods\AccountingPeriodService;
 use App\Services\Tenancy\MembershipService;
 use App\Services\Tenancy\MessService;
@@ -21,7 +22,7 @@ use Illuminate\Database\Seeder;
  */
 class DemoSeeder extends Seeder
 {
-    public function run(TenantService $tenants, MessService $messes, MembershipService $memberships, AccountingPeriodService $periods, MealEntryService $meals, BazarService $bazar, ExpenseService $expenses, DepositService $deposits): void
+    public function run(TenantService $tenants, MessService $messes, MembershipService $memberships, AccountingPeriodService $periods, MealEntryService $meals, BazarService $bazar, ExpenseService $expenses, DepositService $deposits, PortalSettingsService $portal): void
     {
         $owner = User::factory()->create(['name' => 'Demo Owner', 'email' => 'owner@messmate.test']);
         $manager = User::factory()->create(['name' => 'Demo Manager', 'email' => 'manager@messmate.test']);
@@ -72,5 +73,8 @@ class DemoSeeder extends Seeder
 
         $rent = $north->expenseCategories()->where('name', 'Rent')->value('id');
         $expenses->approve($expenses->save($north, ['category_id' => $rent, 'title' => 'House rent', 'amount' => '12000', 'expense_date' => now()->startOfMonth()->toDateString(), 'allocation_method' => 'equal', 'payment_method' => 'mobile_wallet'], $owner), $owner);
+
+        $portal->save($north, selfService: true, requireApproval: true);
+        $north->announcements()->create(['tenant_id' => $north->tenant_id, 'title' => 'Gas line maintenance', 'body' => 'No cooking on Friday morning; breakfast will be bread and eggs.', 'published_at' => now(), 'created_by' => $owner->id]);
     }
 }

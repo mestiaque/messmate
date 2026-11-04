@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added — Phase 5 (dashboards, reports, member portal)
+- Admin dashboard with cached period figures and trend charts.
+- Member portal, self-service meal entry with approval option, announcements.
+- Eight reports with print layout and CSV export.
+
 ### Added — Phase 4 (calculation engine and settlement)
 - Meal-rate strategies (weighted, equal, fixed), food pool, unit and expense allocation services.
 - Draft and final settlements with immutable snapshots, itemized member statements, ledger posting and

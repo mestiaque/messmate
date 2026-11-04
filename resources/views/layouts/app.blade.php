@@ -16,6 +16,7 @@
         .sidebar .nav-link.active, .sidebar .nav-link:hover { background: #e9efff; color: #0d6efd; }
         .sidebar-heading { font-size: .7rem; letter-spacing: .06em; }
         .stat-card .value { font-size: 1.6rem; font-weight: 600; }
+        @media print { .sidebar, .navbar, .d-print-none { display: none !important; } main { padding: 0 !important; } body { background: #fff; } .card { box-shadow: none !important; } }
     </style>
 </head>
 <body>
@@ -82,6 +83,7 @@
                         <li><a class="nav-link @if(request()->routeIs('members.*')) active @endif" href="{{ route('members.index') }}"><i class="bi bi-people me-2"></i>Members</a></li>
                     @endcan
                     @if ($ctx->member())
+                        <li><a class="nav-link @if(request()->routeIs('portal.index')) active @endif" href="{{ route('portal.index') }}"><i class="bi bi-person-badge me-2"></i>My portal</a></li>
                         <li><a class="nav-link @if(request()->routeIs('members.show') && request()->route('member')?->id === $ctx->member()->id) active @endif" href="{{ route('members.show', ['member' => $ctx->member()]) }}"><i class="bi bi-person-vcard me-2"></i>My meals</a></li>
                     @endif
                     <li><a class="nav-link @if(request()->routeIs('meals.calendar')) active @endif" href="{{ route('meals.calendar') }}"><i class="bi bi-calendar3 me-2"></i>Meal calendar</a></li>
@@ -96,6 +98,12 @@
                     <li><a class="nav-link @if(request()->routeIs('periods.*')) active @endif" href="{{ route('periods.index') }}"><i class="bi bi-calendar-range me-2"></i>Periods</a></li>
                     @can('manageMealTypes', $mess)
                         <li><a class="nav-link @if(request()->routeIs('meal-types.*')) active @endif" href="{{ route('meal-types.index') }}"><i class="bi bi-list-ol me-2"></i>Meal types</a></li>
+                    @endcan
+                    @if (auth()->user()->can('viewMeals', $mess) || auth()->user()->can('viewFinance', $mess))
+                        <li><a class="nav-link @if(request()->routeIs('reports.*')) active @endif" href="{{ route('reports.index') }}"><i class="bi bi-file-earmark-spreadsheet me-2"></i>Reports</a></li>
+                    @endif
+                    @can('manageAnnouncements', $mess)
+                        <li><a class="nav-link @if(request()->routeIs('announcements.*')) active @endif" href="{{ route('announcements.index') }}"><i class="bi bi-megaphone me-2"></i>Announcements</a></li>
                     @endcan
                     @can('update', $mess)
                         <li><a class="nav-link @if(request()->routeIs('mess.edit')) active @endif" href="{{ route('mess.edit') }}"><i class="bi bi-sliders me-2"></i>Mess settings</a></li>
@@ -144,5 +152,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+@stack('scripts')
 </body>
 </html>

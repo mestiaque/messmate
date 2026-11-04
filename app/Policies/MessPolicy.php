@@ -120,4 +120,9 @@ class MessPolicy
     {
         return $this->access->allows($user, $mess, Permissions::ADJUSTMENTS_MANAGE);
     }
+
+    public function manageAnnouncements(User $user, Mess $mess): bool
+    {
+        return $this->access->allows($user, $mess, Permissions::ANNOUNCEMENTS_MANAGE);
+    }
 }

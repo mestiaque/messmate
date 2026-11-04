@@ -32,6 +32,7 @@ final class Permissions
     public const SETTLEMENTS_MANAGE = 'settlements.manage';
     public const SETTLEMENTS_PAY = 'settlements.pay';
     public const ADJUSTMENTS_MANAGE = 'adjustments.manage';
+    public const ANNOUNCEMENTS_MANAGE = 'announcements.manage';
 
     /**
      * @return array<string, array{module: string, description: string}>
@@ -61,6 +62,7 @@ final class Permissions
             self::SETTLEMENTS_MANAGE => ['module' => 'settlements', 'description' => 'Configure, preview and finalize monthly settlements'],
             self::SETTLEMENTS_PAY => ['module' => 'settlements', 'description' => 'Record settlement collections and refunds'],
             self::ADJUSTMENTS_MANAGE => ['module' => 'settlements', 'description' => 'Record and approve member credit/debit adjustments'],
+            self::ANNOUNCEMENTS_MANAGE => ['module' => 'portal', 'description' => 'Publish announcements and configure the member portal'],
         ];
     }
 
@@ -77,6 +79,7 @@ final class Permissions
                 self::MESS_VIEW, self::MEMBERS_VIEW, self::MEMBERS_MANAGE, self::PERIODS_MANAGE,
                 self::MEAL_TYPES_MANAGE, self::MEALS_VIEW, self::MEALS_MANAGE, self::MEALS_APPROVE,
                 self::BAZAR_MANAGE, self::BAZAR_APPROVE, self::EXPENSES_MANAGE, self::DEPOSITS_MANAGE, self::FINANCE_VIEW,
+                self::ANNOUNCEMENTS_MANAGE,
             ]],
             Role::ACCOUNTANT => ['name' => 'Accountant', 'permissions' => [
                 self::MESS_VIEW, self::MEMBERS_VIEW, self::MEALS_VIEW, self::BAZAR_APPROVE, self::EXPENSES_MANAGE,

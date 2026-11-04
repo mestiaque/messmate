@@ -89,7 +89,9 @@ class TenantIsolationTest extends TestCase
         $member = $this->memberOf($mess, Role::MEMBER);
         $base = "/t/{$mess->tenant->slug}/m/{$mess->slug}";
 
-        $this->actingAs($member->user)->get($base)->assertOk();
+        // Plain members land on their own portal instead of the admin dashboard.
+        $this->actingAs($member->user)->get($base)->assertRedirect("{$base}/me");
+        $this->actingAs($member->user)->get("{$base}/me")->assertOk();
         $this->actingAs($member->user)->get("{$base}/members")->assertForbidden();
         $this->actingAs($member->user)->get("{$base}/settings")->assertForbidden();
     }

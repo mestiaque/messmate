@@ -8,7 +8,8 @@ use App\Http\Requests\Mess\StoreMessRequest;
 use App\Http\Requests\Mess\UpdateMessRequest;
 use App\Models\Mess;
 use App\Models\Tenant;
-use App\Services\Access\MessAccessService;
+use App\Services\Dashboard\MessDashboardService;
+use App\Services\Periods\AccountingPeriodService;
 use App\Services\Tenancy\MessService;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
@@ -38,16 +39,31 @@ class MessController extends Controller
         return redirect()->route('mess.dashboard', ['mess' => $mess])->with('status', 'Mess created.');
     }
 
-    public function dashboard(Request $request, Tenant $tenant, Mess $mess, TenantContext $context, MessAccessService $access): View
+    /**
+     * Admin dashboard for users who can see meals or finance; members without
+     * those permissions land on their own portal.
+     */
+    public function dashboard(Request $request, Tenant $tenant, Mess $mess, TenantContext $context, AccountingPeriodService $periods, MessDashboardService $dashboard): View|RedirectResponse
     {
-        $member = $context->member()?->load('roles:id,name');
+        $user = $request->user();
+        $isAdmin = $user->can('viewFinance', $mess) || $user->can('viewMeals', $mess) || $user->can('update', $mess);
+
+        if (! $isAdmin && $context->member()) {
+            return redirect()->route('portal.index');
+        }
+
+        $period = $request->filled('period')
+            ? $mess->periods()->findOrFail($request->integer('period'))
+            : ($periods->periodFor($mess, now($mess->timezone)) ?? $mess->periods()->latest('start_date')->first());
 
         return view('messes.dashboard', [
             'mess' => $mess,
-            'member' => $member,
-            'permissions' => $access->permissionsFor($request->user(), $mess),
+            'member' => $context->member()?->load('roles:id,name'),
+            'period' => $period,
+            'periods' => $mess->periods()->orderByDesc('start_date')->get(['id', 'name']),
+            'summary' => $period ? $dashboard->summary($mess, $period) : null,
+            'canFinance' => $user->can('viewFinance', $mess),
             'activeMembers' => $mess->members()->where('membership_status', MembershipStatus::Active)->count(),
-            'totalMembers' => $mess->members()->count(),
         ]);
     }
 
